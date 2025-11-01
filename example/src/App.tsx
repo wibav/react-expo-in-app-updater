@@ -1,20 +1,24 @@
-import { Text, View, StyleSheet } from 'react-native';
-import { multiply } from 'react-expo-in-app-updater';
-
-const result = multiply(3, 7);
+import { useEffect, useState } from 'react';
+import { Text, View } from 'react-native';
+import { checkForUpdate, UpdateFlow } from 'react-expo-in-app-updater';
 
 export default function App() {
+  const [updateAvailable, setUpdateAvailable] = useState('');
+
+  useEffect(() => {
+    getData();
+  }, []);
+
+  async function getData() {
+    try {
+      const result = await checkForUpdate(UpdateFlow.FLEXIBLE);
+      setUpdateAvailable(result);
+    } catch (e) {}
+  }
+
   return (
-    <View style={styles.container}>
-      <Text>Result: {result}</Text>
+    <View>
+      <Text>{updateAvailable}</Text>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});

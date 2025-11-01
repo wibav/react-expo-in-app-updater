@@ -1,37 +1,60 @@
 # react-expo-in-app-updater
 
-Keep your app fresh—without users ever needing to visit the Play Store. This library enables native Android in-app updates for React Native, ensuring everyone is always on the latest version.
+**react-expo-in-app-updater** is a lightweight and simple-to-use library for implementing Android in-app updates. Keep your app users up-to-date seamlessly with minimal effort.
+
+## Features
+- Lightweight and easy to integrate.
+- Supports Android in-app update flows.
+- Flexible update options for a tailored user experience.
 
 ## Installation
 
+Install the package using npm:
 
 ```sh
 npm install react-expo-in-app-updater
 ```
 
-
 ## Usage
 
+To check for updates, use the following example code:
 
-```js
-import { multiply } from 'react-expo-in-app-updater';
+```javascript
+import { useEffect } from 'react';
+import { checkForUpdate, UpdateFlow } from 'react-expo-in-app-updater';
 
-// ...
+useEffect(() => {
+  getData();
+}, []);
 
-const result = multiply(3, 7);
+async function getData() {
+  try {
+    await checkForUpdate(UpdateFlow.FLEXIBLE);
+  } catch (e) {
+    // Handle error
+  }
+}
 ```
 
+### Update Flow Options
+
+You can choose between two update flows:
+
+- **Flexible:** Allows users to continue using the app while the update downloads.
+  ```javascript
+  await checkForUpdate(UpdateFlow.FLEXIBLE);
+  ```
+
+- **Immediate:** Forces users to update the app before they can continue using it.
+  ```javascript
+  await checkForUpdate(UpdateFlow.IMMEDIATE);
+  ```
 
 ## Contributing
 
-- [Development workflow](CONTRIBUTING.md#development-workflow)
-- [Sending a pull request](CONTRIBUTING.md#sending-a-pull-request)
-- [Code of conduct](CODE_OF_CONDUCT.md)
+See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the repository and the development workflow.
 
 ## License
 
 MIT
 
----
-
-Made with [create-react-native-library](https://github.com/callstack/react-native-builder-bob)

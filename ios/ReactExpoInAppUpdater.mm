@@ -1,21 +1,14 @@
-#import "ReactExpoInAppUpdater.h"
+#import <React/RCTBridgeModule.h>
 
-@implementation ReactExpoInAppUpdater
-- (NSNumber *)multiply:(double)a b:(double)b {
-    NSNumber *result = @(a * b);
+@interface RCT_EXTERN_MODULE(ReactExpoInAppUpdater, NSObject)
 
-    return result;
-}
+RCT_EXTERN_METHOD(multiply:(float)a withB:(float)b
+                 withResolver:(RCTPromiseResolveBlock)resolve
+                 withRejecter:(RCTPromiseRejectBlock)reject)
 
-- (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
-    (const facebook::react::ObjCTurboModule::InitParams &)params
++ (BOOL)requiresMainQueueSetup
 {
-    return std::make_shared<facebook::react::NativeReactExpoInAppUpdaterSpecJSI>(params);
-}
-
-+ (NSString *)moduleName
-{
-  return @"ReactExpoInAppUpdater";
+  return NO;
 }
 
 @end
