@@ -1,6 +1,6 @@
 {
   "name": "react-expo-in-app-updater",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Keep your app fresh—without users ever needing to visit the Play Store. This library enables native Android in-app updates for React Native, ensuring everyone is always on the latest version.",
   "source": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",
