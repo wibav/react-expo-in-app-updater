@@ -81,16 +81,46 @@ class ReactExpoInAppUpdater: NSObject {
             
             do {
                 if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-                   let results = json["results"] as? [[String: Any]],
-                   let firstResult = results.first {
+                   let results = json["results"] as? [[String: Any]] {
+                    
+                    // Check if app was found in App Store
+                    guard let firstResult = results.first else {
+                        let error = NSError(
+                            domain: "com.reactexpoinappupdater",
+                            code: 404,
+                            userInfo: [
+                                NSLocalizedDescriptionKey: "App not found in App Store. Bundle ID: \(bundleId)",
+                                NSLocalizedRecoverySuggestionErrorKey: "This app is not published in the App Store yet. For testing, use a bundle ID of a published app (e.g., 'com.facebook.Facebook')."
+                            ]
+                        )
+                        completion(nil, nil, error)
+                        return
+                    }
+                    
                     let version = firstResult["version"] as? String
                     let trackId = firstResult["trackId"] as? Int
                     completion(version, trackId != nil ? "\(trackId!)" : nil, nil)
                 } else {
-                    completion(nil, nil, NSError(domain: "ParseError", code: -1, userInfo: nil))
+                    let error = NSError(
+                        domain: "com.reactexpoinappupdater",
+                        code: -1,
+                        userInfo: [
+                            NSLocalizedDescriptionKey: "Failed to parse iTunes Lookup API response",
+                            NSLocalizedRecoverySuggestionErrorKey: "Unexpected JSON format from App Store API"
+                        ]
+                    )
+                    completion(nil, nil, error)
                 }
             } catch {
-                completion(nil, nil, error)
+                let wrappedError = NSError(
+                    domain: "com.reactexpoinappupdater",
+                    code: -2,
+                    userInfo: [
+                        NSLocalizedDescriptionKey: "JSON parsing error: \(error.localizedDescription)",
+                        NSLocalizedRecoverySuggestionErrorKey: "Check network connection and try again"
+                    ]
+                )
+                completion(nil, nil, wrappedError)
             }
         }.resume()
     }
