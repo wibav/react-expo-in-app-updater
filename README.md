@@ -167,15 +167,68 @@ enum UpdateFlow {
 
 ## Error Codes
 
-| Code               | Description                               |
-| ------------------ | ----------------------------------------- |
-| `NO_BUNDLE_ID`     | Could not get app bundle identifier (iOS) |
-| `NO_VERSION`       | Could not get current app version (iOS)   |
-| `NO_ACTIVITY`      | No current activity available (Android)   |
-| `FETCH_ERROR`      | Failed to fetch update information        |
-| `UPDATE_CANCELLED` | User cancelled the update                 |
-| `INVALID_TYPE`     | Invalid update flow type provided         |
-| `NOT_ALLOWED`      | Update type not allowed (Android)         |
+| Code               | Description                                               |
+| ------------------ | --------------------------------------------------------- |
+| `NO_BUNDLE_ID`     | Could not get app bundle identifier (iOS)                 |
+| `NO_VERSION`       | Could not get current app version (iOS)                   |
+| `NO_ACTIVITY`      | No current activity available (Android)                   |
+| `FETCH_ERROR`      | Failed to fetch update information (network or API error) |
+| `404`              | App not found in App Store - not published yet (iOS)      |
+| `UPDATE_CANCELLED` | User cancelled the update                                 |
+| `INVALID_TYPE`     | Invalid update flow type provided                         |
+| `NOT_ALLOWED`      | Update type not allowed (Android)                         |
+
+## Testing
+
+### Development Testing
+
+Since unpublished apps won't be found in the App Store or Play Store, you'll see error code `404` during development. This is expected behavior.
+
+**For iOS Testing:**
+
+Temporarily change your bundle identifier to a published app for testing:
+
+```xml
+<!-- ios/YourApp/Info.plist -->
+<key>CFBundleIdentifier</key>
+<string>com.facebook.Facebook</string>
+<!-- Remember to revert after testing! -->
+```
+
+**For Android Testing:**
+
+Use internal testing track on Google Play Console, or temporarily change your application ID:
+
+```gradle
+// android/app/build.gradle
+android {
+    defaultConfig {
+        applicationId "com.facebook.katana" // Facebook's app ID
+        // Remember to revert after testing!
+    }
+}
+```
+
+**Test Bundle IDs (Published Apps):**
+
+- **Facebook**: `com.facebook.Facebook` (iOS), `com.facebook.katana` (Android)
+- **Instagram**: `com.burbn.instagram` (iOS), `com.instagram.android` (Android)
+- **WhatsApp**: `net.whatsapp.WhatsApp` (iOS), `com.whatsapp` (Android)
+
+### Error Messages
+
+The library provides detailed error messages with recovery suggestions:
+
+```javascript
+try {
+  await checkForUpdate(UpdateFlow.IMMEDIATE);
+} catch (error) {
+  console.log('Error:', error.message);
+  // iOS Example: "App not found in App Store. Bundle ID: com.example.myapp"
+  // Suggestion: "This app is not published in the App Store yet. For testing,
+  //              use a bundle ID of a published app (e.g., 'com.facebook.Facebook')."
+}
+```
 
 ## Troubleshooting
 
