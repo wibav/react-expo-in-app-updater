@@ -3,6 +3,7 @@
 **react-expo-in-app-updater** is a lightweight and easy-to-use library for implementing in-app updates for both **Android** and **iOS**. Keep your app users up-to-date seamlessly with minimal effort.
 
 ## Features
+
 - 📦 Lightweight and easy to integrate
 - 🤖 **Android**: Google Play In-App Updates API
 - 🍎 **iOS**: App Store modal with iTunes Lookup API
@@ -23,6 +24,7 @@ yarn add react-expo-in-app-updater
 ### iOS Setup
 
 Run pod install:
+
 ```sh
 cd ios && pod install
 ```
@@ -54,6 +56,7 @@ async function checkUpdateAvailability() {
 You can choose between two update flows:
 
 #### **Flexible Update**
+
 Allows users to continue using the app while being notified about the update.
 
 ```javascript
@@ -61,10 +64,12 @@ await checkForUpdate(UpdateFlow.FLEXIBLE);
 ```
 
 **Platform Behavior:**
+
 - **Android**: Shows update dialog, downloads in background, user can continue using the app
 - **iOS**: Shows alert with "Update Now" and "Later" buttons
 
 #### **Immediate Update**
+
 Forces users to update the app before they can continue using it.
 
 ```javascript
@@ -72,6 +77,7 @@ await checkForUpdate(UpdateFlow.IMMEDIATE);
 ```
 
 **Platform Behavior:**
+
 - **Android**: Blocks the app, shows full-screen update flow
 - **iOS**: Shows non-cancelable alert, opens App Store modal
 
@@ -84,7 +90,7 @@ import { Alert, Platform } from 'react-native';
 async function handleAppUpdate() {
   try {
     const result = await checkForUpdate(UpdateFlow.FLEXIBLE);
-    
+
     if (result === 'No update available') {
       console.log('App is up to date');
     } else {
@@ -115,12 +121,14 @@ async function handleAppUpdate() {
 ## Platform-Specific Details
 
 ### Android
+
 - Uses [Google Play In-App Updates API](https://developer.android.com/guide/playcore/in-app-updates)
 - Requires the app to be published on Google Play Store
 - Update availability checked via Play Store
 - Supports immediate and flexible update modes
 
 ### iOS
+
 - Uses [iTunes Lookup API](https://developer.apple.com/library/archive/documentation/AudioVideo/Conceptual/iTuneSearchAPI/) to check version
 - Opens App Store modal using `SKStoreProductViewController`
 - Compares current version with App Store version
@@ -134,12 +142,15 @@ async function handleAppUpdate() {
 Checks for available updates and prompts the user accordingly.
 
 **Parameters:**
+
 - `updateFlow`: `UpdateFlow.IMMEDIATE` | `UpdateFlow.FLEXIBLE`
 
 **Returns:**
+
 - `Promise<string>`: Resolves with status message or rejects with error
 
 **Possible responses:**
+
 - `"No update available"`: App is up to date
 - `"Update started"`: Update flow initiated (Android)
 - `"App Store opened"`: App Store modal opened (iOS)
@@ -149,31 +160,33 @@ Checks for available updates and prompts the user accordingly.
 
 ```typescript
 enum UpdateFlow {
-  IMMEDIATE = 'IMMEDIATE',  // Forces update
-  FLEXIBLE = 'FLEXIBLE'     // Optional update
+  IMMEDIATE = 'IMMEDIATE', // Forces update
+  FLEXIBLE = 'FLEXIBLE', // Optional update
 }
 ```
 
 ## Error Codes
 
-| Code | Description |
-|------|-------------|
-| `NO_BUNDLE_ID` | Could not get app bundle identifier (iOS) |
-| `NO_VERSION` | Could not get current app version (iOS) |
-| `NO_ACTIVITY` | No current activity available (Android) |
-| `FETCH_ERROR` | Failed to fetch update information |
-| `UPDATE_CANCELLED` | User cancelled the update |
-| `INVALID_TYPE` | Invalid update flow type provided |
-| `NOT_ALLOWED` | Update type not allowed (Android) |
+| Code               | Description                               |
+| ------------------ | ----------------------------------------- |
+| `NO_BUNDLE_ID`     | Could not get app bundle identifier (iOS) |
+| `NO_VERSION`       | Could not get current app version (iOS)   |
+| `NO_ACTIVITY`      | No current activity available (Android)   |
+| `FETCH_ERROR`      | Failed to fetch update information        |
+| `UPDATE_CANCELLED` | User cancelled the update                 |
+| `INVALID_TYPE`     | Invalid update flow type provided         |
+| `NOT_ALLOWED`      | Update type not allowed (Android)         |
 
 ## Troubleshooting
 
 ### iOS
+
 - Make sure your app is published on the App Store
 - Check that your bundle identifier matches the one in App Store Connect
 - Verify that `CFBundleShortVersionString` is set correctly in Info.plist
 
 ### Android
+
 - Ensure your app is published on Google Play Store
 - In-app updates only work with apps downloaded from Play Store
 - Test using internal testing track or production
@@ -197,4 +210,3 @@ MIT
 ---
 
 Made with ❤️ for React Native developers
-

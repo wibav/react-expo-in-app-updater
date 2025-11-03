@@ -1,6 +1,10 @@
 import Foundation
 import StoreKit
 
+#if canImport(UIKit)
+import UIKit
+#endif
+
 @objc(ReactExpoInAppUpdater)
 class ReactExpoInAppUpdater: NSObject {
     
@@ -9,7 +13,7 @@ class ReactExpoInAppUpdater: NSObject {
     // MARK: - Public Methods
     
     @objc(checkForUpdate:withResolver:withRejecter:)
-    func checkForUpdate(_ updateType: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+    func checkForUpdate(_ updateType: String, resolve: @escaping @convention(block) (Any?) -> Void, reject: @escaping @convention(block) (String?, String?, Error?) -> Void) -> Void {
         
         guard let bundleId = Bundle.main.bundleIdentifier else {
             reject("NO_BUNDLE_ID", "Could not get bundle identifier", nil)
@@ -49,7 +53,7 @@ class ReactExpoInAppUpdater: NSObject {
                     }
                 }
             } else {
-                resolve("No update available")
+                resolve("No update available" as NSString)
             }
         }
     }
@@ -111,7 +115,8 @@ class ReactExpoInAppUpdater: NSObject {
         return false
     }
     
-    private func showImmediateUpdate(appId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+    private func showImmediateUpdate(appId: String, resolve: @escaping @convention(block) (Any?) -> Void, reject: @escaping @convention(block) (String?, String?, Error?) -> Void) {
+        #if canImport(UIKit)
         guard let rootViewController = UIApplication.shared.keyWindow?.rootViewController else {
             reject("NO_ROOT_VC", "Could not get root view controller", nil)
             return
@@ -128,9 +133,11 @@ class ReactExpoInAppUpdater: NSObject {
         })
         
         rootViewController.present(alert, animated: true)
+        #endif
     }
     
-    private func showFlexibleUpdate(appId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+    private func showFlexibleUpdate(appId: String, resolve: @escaping @convention(block) (Any?) -> Void, reject: @escaping @convention(block) (String?, String?, Error?) -> Void) {
+        #if canImport(UIKit)
         guard let rootViewController = UIApplication.shared.keyWindow?.rootViewController else {
             reject("NO_ROOT_VC", "Could not get root view controller", nil)
             return
@@ -147,13 +154,15 @@ class ReactExpoInAppUpdater: NSObject {
         })
         
         alert.addAction(UIAlertAction(title: "Later", style: .cancel) { _ in
-            resolve("Update cancelled")
+            resolve("Update cancelled" as NSString)
         })
         
         rootViewController.present(alert, animated: true)
+        #endif
     }
     
-    private func openAppStore(appId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+    private func openAppStore(appId: String, resolve: @escaping @convention(block) (Any?) -> Void, reject: @escaping @convention(block) (String?, String?, Error?) -> Void) {
+        #if canImport(UIKit)
         guard let rootViewController = UIApplication.shared.keyWindow?.rootViewController else {
             reject("NO_ROOT_VC", "Could not get root view controller", nil)
             return
@@ -167,12 +176,13 @@ class ReactExpoInAppUpdater: NSObject {
         storeVC.loadProduct(withParameters: parameters) { success, error in
             if success {
                 rootViewController.present(storeVC, animated: true) {
-                    resolve("App Store opened")
+                    resolve("App Store opened" as NSString)
                 }
             } else {
                 reject("STORE_ERROR", error?.localizedDescription ?? "Could not open App Store", error)
             }
         }
+        #endif
     }
     
     @objc
@@ -185,8 +195,7 @@ class ReactExpoInAppUpdater: NSObject {
 
 extension ReactExpoInAppUpdater: SKStoreProductViewControllerDelegate {
     func productViewControllerDidFinish(_ viewController: SKStoreProductViewController) {
-        viewController.dismiss(animated: true) {
-            self.storeProductViewController = nil
-        }
+        viewController.dismiss(nil)
+        self.storeProductViewController = nil
     }
 }
