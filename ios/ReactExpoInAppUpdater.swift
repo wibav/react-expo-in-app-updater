@@ -61,7 +61,24 @@ class ReactExpoInAppUpdater: NSObject {
     // MARK: - Private Methods
     
     private func fetchAppStoreVersion(bundleId: String, completion: @escaping (String?, String?, Error?) -> Void) {
-        let urlString = "https://itunes.apple.com/lookup?bundleId=\(bundleId)"
+        // Try without country first (global search)
+        fetchFromiTunes(bundleId: bundleId, country: nil) { version, appId, error in
+            if version != nil && appId != nil {
+                // Found in global search
+                completion(version, appId, nil)
+            } else {
+                // Not found globally, try with device's country code
+                let countryCode = Locale.current.regionCode ?? "US"
+                self.fetchFromiTunes(bundleId: bundleId, country: countryCode, completion: completion)
+            }
+        }
+    }
+    
+    private func fetchFromiTunes(bundleId: String, country: String?, completion: @escaping (String?, String?, Error?) -> Void) {
+        var urlString = "https://itunes.apple.com/lookup?bundleId=\(bundleId)"
+        if let country = country {
+            urlString += "&country=\(country)"
+        }
         
         guard let url = URL(string: urlString) else {
             completion(nil, nil, NSError(domain: "InvalidURL", code: -1, userInfo: nil))
