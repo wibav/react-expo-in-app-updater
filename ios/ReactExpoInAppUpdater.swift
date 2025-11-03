@@ -195,7 +195,7 @@ class ReactExpoInAppUpdater: NSObject {
 
 extension ReactExpoInAppUpdater: SKStoreProductViewControllerDelegate {
     func productViewControllerDidFinish(_ viewController: SKStoreProductViewController) {
-        viewController.dismiss(nil)
+        viewController.dismiss(animated: true, completion: nil)
         self.storeProductViewController = nil
     }
 }
