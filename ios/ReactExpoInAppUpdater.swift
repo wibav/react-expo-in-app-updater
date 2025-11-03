@@ -1,8 +1,192 @@
+import Foundation
+import StoreKit
+
 @objc(ReactExpoInAppUpdater)
 class ReactExpoInAppUpdater: NSObject {
+    
+    private var storeProductViewController: SKStoreProductViewController?
+    
+    // MARK: - Public Methods
+    
+    @objc(checkForUpdate:withResolver:withRejecter:)
+    func checkForUpdate(_ updateType: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+        
+        guard let bundleId = Bundle.main.bundleIdentifier else {
+            reject("NO_BUNDLE_ID", "Could not get bundle identifier", nil)
+            return
+        }
+        
+        // Get current version
+        guard let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String else {
+            reject("NO_VERSION", "Could not get current app version", nil)
+            return
+        }
+        
+        // Fetch App Store version
+        fetchAppStoreVersion(bundleId: bundleId) { [weak self] appStoreVersion, appId, error in
+            guard let self = self else { return }
+            
+            if let error = error {
+                reject("FETCH_ERROR", error.localizedDescription, error)
+                return
+            }
+            
+            guard let appStoreVersion = appStoreVersion, let appId = appId else {
+                reject("NO_DATA", "Could not fetch App Store data", nil)
+                return
+            }
+            
+            // Compare versions
+            if self.isUpdateAvailable(current: currentVersion, appStore: appStoreVersion) {
+                DispatchQueue.main.async {
+                    switch updateType.uppercased() {
+                    case "IMMEDIATE":
+                        self.showImmediateUpdate(appId: appId, resolve: resolve, reject: reject)
+                    case "FLEXIBLE":
+                        self.showFlexibleUpdate(appId: appId, resolve: resolve, reject: reject)
+                    default:
+                        reject("INVALID_TYPE", "Update type must be 'FLEXIBLE' or 'IMMEDIATE'", nil)
+                    }
+                }
+            } else {
+                resolve("No update available")
+            }
+        }
+    }
+    
+    // MARK: - Private Methods
+    
+    private func fetchAppStoreVersion(bundleId: String, completion: @escaping (String?, String?, Error?) -> Void) {
+        let urlString = "https://itunes.apple.com/lookup?bundleId=\(bundleId)"
+        
+        guard let url = URL(string: urlString) else {
+            completion(nil, nil, NSError(domain: "InvalidURL", code: -1, userInfo: nil))
+            return
+        }
+        
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            if let error = error {
+                completion(nil, nil, error)
+                return
+            }
+            
+            guard let data = data else {
+                completion(nil, nil, NSError(domain: "NoData", code: -1, userInfo: nil))
+                return
+            }
+            
+            do {
+                if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let results = json["results"] as? [[String: Any]],
+                   let firstResult = results.first {
+                    let version = firstResult["version"] as? String
+                    let trackId = firstResult["trackId"] as? Int
+                    completion(version, trackId != nil ? "\(trackId!)" : nil, nil)
+                } else {
+                    completion(nil, nil, NSError(domain: "ParseError", code: -1, userInfo: nil))
+                }
+            } catch {
+                completion(nil, nil, error)
+            }
+        }.resume()
+    }
+    
+    private func isUpdateAvailable(current: String, appStore: String) -> Bool {
+        let currentComponents = current.split(separator: ".").compactMap { Int($0) }
+        let appStoreComponents = appStore.split(separator: ".").compactMap { Int($0) }
+        
+        let maxLength = max(currentComponents.count, appStoreComponents.count)
+        
+        for i in 0..<maxLength {
+            let currentValue = i < currentComponents.count ? currentComponents[i] : 0
+            let appStoreValue = i < appStoreComponents.count ? appStoreComponents[i] : 0
+            
+            if appStoreValue > currentValue {
+                return true
+            } else if appStoreValue < currentValue {
+                return false
+            }
+        }
+        
+        return false
+    }
+    
+    private func showImmediateUpdate(appId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        guard let rootViewController = UIApplication.shared.keyWindow?.rootViewController else {
+            reject("NO_ROOT_VC", "Could not get root view controller", nil)
+            return
+        }
+        
+        let alert = UIAlertController(
+            title: "Update Required",
+            message: "A new version is available. Please update to continue using the app.",
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(title: "Update Now", style: .default) { [weak self] _ in
+            self?.openAppStore(appId: appId, resolve: resolve, reject: reject)
+        })
+        
+        rootViewController.present(alert, animated: true)
+    }
+    
+    private func showFlexibleUpdate(appId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        guard let rootViewController = UIApplication.shared.keyWindow?.rootViewController else {
+            reject("NO_ROOT_VC", "Could not get root view controller", nil)
+            return
+        }
+        
+        let alert = UIAlertController(
+            title: "Update Available",
+            message: "A new version is available. Would you like to update now?",
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(title: "Update Now", style: .default) { [weak self] _ in
+            self?.openAppStore(appId: appId, resolve: resolve, reject: reject)
+        })
+        
+        alert.addAction(UIAlertAction(title: "Later", style: .cancel) { _ in
+            resolve("Update cancelled")
+        })
+        
+        rootViewController.present(alert, animated: true)
+    }
+    
+    private func openAppStore(appId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        guard let rootViewController = UIApplication.shared.keyWindow?.rootViewController else {
+            reject("NO_ROOT_VC", "Could not get root view controller", nil)
+            return
+        }
+        
+        let storeVC = SKStoreProductViewController()
+        storeVC.delegate = self
+        self.storeProductViewController = storeVC
+        
+        let parameters = [SKStoreProductParameterITunesItemIdentifier: appId]
+        storeVC.loadProduct(withParameters: parameters) { success, error in
+            if success {
+                rootViewController.present(storeVC, animated: true) {
+                    resolve("App Store opened")
+                }
+            } else {
+                reject("STORE_ERROR", error?.localizedDescription ?? "Could not open App Store", error)
+            }
+        }
+    }
+    
+    @objc
+    static func requiresMainQueueSetup() -> Bool {
+        return true
+    }
+}
 
-  @objc(multiply:withB:withResolver:withRejecter:)
-  func multiply(a: Float, b: Float, resolve:RCTPromiseResolveBlock,reject:RCTPromiseRejectBlock) -> Void {
-    resolve(a*b)
-  }
+// MARK: - SKStoreProductViewControllerDelegate
+
+extension ReactExpoInAppUpdater: SKStoreProductViewControllerDelegate {
+    func productViewControllerDidFinish(_ viewController: SKStoreProductViewController) {
+        viewController.dismiss(animated: true) {
+            self.storeProductViewController = nil
+        }
+    }
 }
