@@ -135,6 +135,16 @@ async function handleAppUpdate() {
 - Shows native iOS alerts for update prompts
 - **Note**: Requires app to be published on App Store for version comparison
 
+## Compatibility
+
+| Environment | Status |
+| --- | --- |
+| React Native 0.85 / Expo SDK 56 | ✅ Runs in production on the New Architecture (Android and iOS) |
+| React Native 0.88 / Expo SDK 58 | ✅ Release builds compile on Android and iOS · ⚠️ `checkForUpdate` not yet exercised at runtime |
+| New Architecture | Works through React Native's compatibility path for legacy modules; not yet a TurboModule or Expo Module |
+
+This is a legacy bridge module. See [docs/NEW_ARCHITECTURE.md](docs/NEW_ARCHITECTURE.md) for the current status, the verification details and the migration plan.
+
 ## API Reference
 
 ### `checkForUpdate(updateFlow: UpdateFlow): Promise<string>`
@@ -177,6 +187,7 @@ enum UpdateFlow {
 | `UPDATE_CANCELLED` | User cancelled the update                                 |
 | `INVALID_TYPE`     | Invalid update flow type provided                         |
 | `NOT_ALLOWED`      | Update type not allowed (Android)                         |
+| `UPDATE_CHECK_FAILED` | Play Store check failed; the message is passed through from Play Core (Android) |
 
 ## Testing
 
