@@ -44,6 +44,10 @@ android.iml
 #
 example/ios/Pods
 
+# Swift Package Manager
+#
+.build/
+
 # Ruby
 example/vendor/
 
