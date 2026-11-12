@@ -5,15 +5,18 @@ import StoreKit
 import UIKit
 #endif
 
-@objc(ReactExpoInAppUpdater)
-class ReactExpoInAppUpdater: NSObject {
+/// Implementation of the update check. It is exposed to Objective-C and called
+/// from the TurboModule in ReactExpoInAppUpdater.mm, which conforms to the
+/// codegen spec generated from src/NativeReactExpoInAppUpdater.ts.
+@objc(ReactExpoInAppUpdaterImpl)
+public class ReactExpoInAppUpdaterImpl: NSObject {
     
     private var storeProductViewController: SKStoreProductViewController?
     
     // MARK: - Public Methods
     
-    @objc(checkForUpdate:withResolver:withRejecter:)
-    func checkForUpdate(_ updateType: String, resolve: @escaping @convention(block) (Any?) -> Void, reject: @escaping @convention(block) (String?, String?, Error?) -> Void) -> Void {
+    @objc(checkForUpdate:resolve:reject:)
+    public func checkForUpdate(_ updateType: String, resolve: @escaping (Any?) -> Void, reject: @escaping (String?, String?, Error?) -> Void) -> Void {
         
         guard let bundleId = Bundle.main.bundleIdentifier else {
             reject("NO_BUNDLE_ID", "Could not get bundle identifier", nil)
@@ -162,7 +165,7 @@ class ReactExpoInAppUpdater: NSObject {
         return false
     }
     
-    private func showImmediateUpdate(appId: String, resolve: @escaping @convention(block) (Any?) -> Void, reject: @escaping @convention(block) (String?, String?, Error?) -> Void) {
+    private func showImmediateUpdate(appId: String, resolve: @escaping (Any?) -> Void, reject: @escaping (String?, String?, Error?) -> Void) {
         #if canImport(UIKit)
         guard let rootViewController = UIApplication.shared.keyWindow?.rootViewController else {
             reject("NO_ROOT_VC", "Could not get root view controller", nil)
@@ -183,7 +186,7 @@ class ReactExpoInAppUpdater: NSObject {
         #endif
     }
     
-    private func showFlexibleUpdate(appId: String, resolve: @escaping @convention(block) (Any?) -> Void, reject: @escaping @convention(block) (String?, String?, Error?) -> Void) {
+    private func showFlexibleUpdate(appId: String, resolve: @escaping (Any?) -> Void, reject: @escaping (String?, String?, Error?) -> Void) {
         #if canImport(UIKit)
         guard let rootViewController = UIApplication.shared.keyWindow?.rootViewController else {
             reject("NO_ROOT_VC", "Could not get root view controller", nil)
@@ -208,7 +211,7 @@ class ReactExpoInAppUpdater: NSObject {
         #endif
     }
     
-    private func openAppStore(appId: String, resolve: @escaping @convention(block) (Any?) -> Void, reject: @escaping @convention(block) (String?, String?, Error?) -> Void) {
+    private func openAppStore(appId: String, resolve: @escaping (Any?) -> Void, reject: @escaping (String?, String?, Error?) -> Void) {
         #if canImport(UIKit)
         guard let rootViewController = UIApplication.shared.keyWindow?.rootViewController else {
             reject("NO_ROOT_VC", "Could not get root view controller", nil)
@@ -231,17 +234,12 @@ class ReactExpoInAppUpdater: NSObject {
         }
         #endif
     }
-    
-    @objc
-    static func requiresMainQueueSetup() -> Bool {
-        return true
-    }
 }
 
 // MARK: - SKStoreProductViewControllerDelegate
 
-extension ReactExpoInAppUpdater: SKStoreProductViewControllerDelegate {
-    func productViewControllerDidFinish(_ viewController: SKStoreProductViewController) {
+extension ReactExpoInAppUpdaterImpl: SKStoreProductViewControllerDelegate {
+    public func productViewControllerDidFinish(_ viewController: SKStoreProductViewController) {
         viewController.dismiss(animated: true, completion: nil)
         self.storeProductViewController = nil
     }

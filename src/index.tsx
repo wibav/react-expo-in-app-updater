@@ -1,4 +1,7 @@
-import { NativeModules, Platform } from 'react-native';
+import { Platform } from 'react-native';
+import NativeReactExpoInAppUpdater, {
+  type Spec,
+} from './NativeReactExpoInAppUpdater';
 
 const LINKING_ERROR =
   `The package 'react-expo-in-app-updater' doesn't seem to be linked. Make sure: \n\n` +
@@ -6,16 +9,13 @@ const LINKING_ERROR =
   '- You rebuilt the app after installing the package\n' +
   '- You are not using Expo Go\n';
 
-const ExpoInAppUpdater = NativeModules.ReactExpoInAppUpdater
-  ? NativeModules.ReactExpoInAppUpdater
-  : new Proxy(
-      {},
-      {
-        get() {
-          throw new Error(LINKING_ERROR);
-        },
-      }
-    );
+const ExpoInAppUpdater = NativeReactExpoInAppUpdater
+  ? NativeReactExpoInAppUpdater
+  : new Proxy({} as Spec, {
+      get() {
+        throw new Error(LINKING_ERROR);
+      },
+    });
 
 export enum UpdateFlow {
   IMMEDIATE = 'IMMEDIATE',

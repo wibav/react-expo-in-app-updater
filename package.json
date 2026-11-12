@@ -192,5 +192,13 @@
     "type": "legacy-module",
     "languages": "kotlin-swift",
     "version": "0.45.5"
+  },
+  "codegenConfig": {
+    "name": "ReactExpoInAppUpdaterSpec",
+    "type": "modules",
+    "jsSrcsDir": "src",
+    "android": {
+      "javaPackageName": "com.reactexpoinappupdater"
+    }
   }
 }

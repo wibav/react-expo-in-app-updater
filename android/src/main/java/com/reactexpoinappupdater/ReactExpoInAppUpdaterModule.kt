@@ -11,7 +11,7 @@ import com.google.android.play.core.install.model.UpdateAvailability
 import com.google.android.play.core.install.model.InstallStatus
 
 class ReactExpoInAppUpdaterModule(reactContext: ReactApplicationContext) :
-    ReactContextBaseJavaModule(reactContext), ActivityEventListener {
+    NativeReactExpoInAppUpdaterSpec(reactContext), ActivityEventListener {
 
     private val appUpdateManager: AppUpdateManager = AppUpdateManagerFactory.create(reactContext)
     private val REQUEST_CODE_UPDATE = 1234
@@ -21,12 +21,7 @@ class ReactExpoInAppUpdaterModule(reactContext: ReactApplicationContext) :
         reactContext.addActivityEventListener(this)
     }
 
-    override fun getName(): String {
-        return "ReactExpoInAppUpdater"
-    }
-
-    @ReactMethod
-    fun checkForUpdate(updateType: String, promise: Promise) {
+    override fun checkForUpdate(updateType: String, promise: Promise) {
         val activity = reactApplicationContext.currentActivity 
             ?: return promise.reject("NO_ACTIVITY", "No current activity")
 
@@ -95,5 +90,9 @@ class ReactExpoInAppUpdaterModule(reactContext: ReactApplicationContext) :
     }
     override fun onNewIntent(intent: Intent) {
         // Not used
+    }
+
+    companion object {
+        const val NAME = NativeReactExpoInAppUpdaterSpec.NAME
     }
 }
